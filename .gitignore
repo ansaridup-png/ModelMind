@@ -1,0 +1,19 @@
+# Node
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Java
+backend/ai/target/
+backend/ai/.classpath
+backend/ai/.project
+backend/ai/.settings/
+
+# Python
+ml-engine/.venv/
+ml-engine/__pycache__/
+ml-engine/**/*.pyc
+
+# Docker / OS
+.DS_Store
+Thumbs.db

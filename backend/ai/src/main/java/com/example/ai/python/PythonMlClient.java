@@ -1,0 +1,152 @@
+package com.example.ai.python;
+
+import com.example.ai.training.TrainingRequest;
+import com.example.ai.training.TrainingResponse;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Component
+public class PythonMlClient {
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public String callHealthCheck() {
+        return restTemplate.getForObject("http://localhost:8000/health", String.class);
+    }
+
+    public TrainingResponse callTrainLinearRegression(TrainingRequest request) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model_name", request.modelName());
+        payload.put("dataset_name", request.datasetName());
+        payload.put("target", request.target());
+        payload.put("features", request.features() == null ? List.of() : request.features());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "http://localhost:8000/api/train/linear-regression",
+                HttpMethod.POST,
+                entity,
+                Map.class
+        );
+
+        Map<String, Object> body = response.getBody();
+        if (body == null) {
+            throw new IllegalStateException("Empty response from Python ML engine");
+        }
+
+        return new TrainingResponse(
+                String.valueOf(body.getOrDefault("model", "Linear Regression")),
+                String.valueOf(body.getOrDefault("dataset", request.datasetName())),
+                toDouble(body.get("r2_score")),
+                toDouble(body.get("mae")),
+                toDouble(body.get("rmse")),
+                toStringList(body.get("features")),
+                String.valueOf(body.getOrDefault("target", request.target())),
+                String.valueOf(body.getOrDefault("artifact_name", "linear-regression-model.joblib"))
+        );
+    }
+
+    private double toDouble(Object value) {
+        if (value == null) {
+            return 0.0;
+        }
+        return Double.parseDouble(String.valueOf(value));
+    }
+
+        public TrainingResponse callTrainMultipleLinearRegression(
+            TrainingRequest request
+    ) {
+
+        Map<String, Object> payload = new HashMap<>();
+
+        payload.put("model_name", request.modelName());
+        payload.put("dataset_name", request.datasetName());
+        payload.put("target", request.target());
+
+        payload.put(
+                "features",
+                request.features() == null
+                        ? List.of()
+                        : request.features()
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity =
+                new HttpEntity<>(payload, headers);
+
+        ResponseEntity<Map> response =
+                restTemplate.exchange(
+                        "http://localhost:8000/api/train/multiple-linear-regression",
+                        HttpMethod.POST,
+                        entity,
+                        Map.class
+                );
+
+        Map<String, Object> body = response.getBody();
+
+        if (body == null) {
+            throw new IllegalStateException(
+                    "Empty response from Python ML engine"
+            );
+        }
+
+        return new TrainingResponse(
+                String.valueOf(
+                        body.getOrDefault(
+                                "model",
+                                "Multiple Linear Regression"
+                        )
+                ),
+
+                String.valueOf(
+                        body.getOrDefault(
+                                "dataset",
+                                request.datasetName()
+                        )
+                ),
+
+                toDouble(body.get("r2_score")),
+
+                toDouble(body.get("mae")),
+
+                toDouble(body.get("rmse")),
+
+                toStringList(body.get("features")),
+
+                String.valueOf(
+                        body.getOrDefault(
+                                "target",
+                                request.target()
+                        )
+                ),
+
+                String.valueOf(
+                        body.getOrDefault(
+                                "artifact_name",
+                                "multiple-linear-regression-model.joblib"
+                        )
+                )
+        );
+    }
+
+    private List<String> toStringList(Object value) {
+        if (value instanceof List<?> list) {
+            return list.stream().map(String::valueOf).toList();
+        }
+        return List.of();
+    }
+}

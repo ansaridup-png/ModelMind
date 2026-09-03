@@ -1,0 +1,34 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai-platform-frontend
+    ports:
+      - '3000:3000'
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend/ai
+      dockerfile: Dockerfile
+    container_name: ai-platform-backend
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - ml-engine
+
+  ml-engine:
+    build:
+      context: ./ml-engine
+      dockerfile: Dockerfile
+    container_name: ai-platform-ml-engine
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./storage:/storage
