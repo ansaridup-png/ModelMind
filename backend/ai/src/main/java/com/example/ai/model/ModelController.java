@@ -27,7 +27,10 @@ public class ModelController {
                 "regression", List.of(
                         Map.of("label", "Linear Regression", "enabled", true, "route", "linear-regression"),
                         Map.of("label", "Multiple Linear Regression", "enabled", true, "route", "multiple-linear-regression"),
-                        Map.of("label", "Polynomial Regression", "enabled", false, "route", "home")
+                        Map.of("label", "Polynomial Regression", "enabled", true, "route", "polynomial-regression"),
+                        Map.of("label", "Ridge Regression", "enabled", true, "route", "ridge-regression"),
+                        Map.of("label", "Decision Tree", "enabled", true, "route", "decision-tree"),
+                        Map.of("label", "Random Forest", "enabled", true, "route", "random-forest")
                 )
         );
     }

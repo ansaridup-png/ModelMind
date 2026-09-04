@@ -14,7 +14,8 @@ public class DashboardController {
     @GetMapping("/dashboard")
     public Map<String, Object> dashboard() {
         return Map.of(
-                "title", "AI MODEL PLATFORM",
+                "title", "ModelMind",
+                "tagline", "From data to decisions.",
                 "cards", List.of(
                         Map.of("id", "ml", "title", "ML", "subtitle", "Machine Learning", "accent", "cyan", "route", "ml"),
                         Map.of("id", "dl", "title", "DL", "subtitle", "Deep Learning", "accent", "violet", "route", "dl"),

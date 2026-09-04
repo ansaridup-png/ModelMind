@@ -6,6 +6,11 @@ public record TrainingRequest(
         String modelName,
         String datasetName,
         String target,
-        List<String> features
+        List<String> features,
+        Integer degree,
+        Integer alpha,
+        Integer noOfTrees
 ) {
 }
+
+
