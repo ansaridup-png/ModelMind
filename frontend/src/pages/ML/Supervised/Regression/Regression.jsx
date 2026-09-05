@@ -99,7 +99,7 @@ function Regression({ onBack }) {
             disabled={!item.enabled}
           >
             {item.label}
-            {!item.enabled && <span className="coming-soon">Coming soo</span>}
+            {!item.enabled && <span className="coming-soon">Coming soon</span>}
           </button>
         ))}  
       </div>
