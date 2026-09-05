@@ -30,7 +30,10 @@ public class ModelController {
                         Map.of("label", "Polynomial Regression", "enabled", true, "route", "polynomial-regression"),
                         Map.of("label", "Ridge Regression", "enabled", true, "route", "ridge-regression"),
                         Map.of("label", "Decision Tree", "enabled", true, "route", "decision-tree"),
-                        Map.of("label", "Random Forest", "enabled", true, "route", "random-forest")
+                        Map.of("label", "Random Forest", "enabled", true, "route", "random-forest"),
+                        Map.of("label", "XGBoost", "enabled", true, "route", "xgboost"),
+                        Map.of("label", "Support Vector Regression", "enabled", true, "route", "svr"),
+                        Map.of("label", "KNN Regression", "enabled", true, "route", "knn")
                 )
         );
     }

@@ -8,8 +8,14 @@ public record TrainingRequest(
         String target,
         List<String> features,
         Integer degree,
-        Integer alpha,
-        Integer noOfTrees
+        double alpha,
+        Integer noOfTrees,
+        Integer maxDepth,
+        double learningRate,
+        Double epsilon,
+        String kernel,
+        Integer noOfNeighbors,
+        String weights
 ) {
 }
 

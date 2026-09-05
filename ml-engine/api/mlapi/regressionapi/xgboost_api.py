@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from fastapi import APIRouter
 from pydantic import BaseModel
-from sklearn.ensemble import RandomForestRegressor
+import xgboost as xgb
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 router = APIRouter(prefix='/api')
@@ -16,7 +16,10 @@ class TrainingRequest(BaseModel):
     dataset_name: str
     target: str
     features: list[str]
-    n_estimators: int = 100  # Default value for number of trees
+    # Accept the parameter names that the Java orchestration sends
+    n_estimators: int = 100
+    max_depth: int = 6
+    learning_rate: float = 0.1
 
 
 class TrainingResponse(BaseModel):
@@ -30,11 +33,14 @@ class TrainingResponse(BaseModel):
     artifact_name: str
 
 
-@router.post('/train/random-forest')
-def train_random_forest(request: TrainingRequest):
+@router.post('/train/xgboost')
+def train_xgboost(request: TrainingRequest):
     project_root = Path(__file__).resolve().parents[3]
     dataset_path = project_root / 'data' / 'uploaded' / request.dataset_name
-    print(f"n_estimators: {request.n_estimators}, features: {request.features}, target: {request.target}")
+    # Log the actual hyperparameters received from the orchestration layer
+    print(
+        f"n_estimators: {request.n_estimators}, max_depth: {request.max_depth}, learning_rate: {request.learning_rate}, features: {request.features}, target: {request.target}"
+    )
 
     if not dataset_path.exists():
         uploaded_dir = project_root / 'data' / 'uploaded'
@@ -55,13 +61,17 @@ def train_random_forest(request: TrainingRequest):
     X = df[selected_features].apply(pd.to_numeric, errors='coerce').fillna(0).values
     y = pd.to_numeric(df[request.target], errors='coerce').fillna(0).values
 
-    model = RandomForestRegressor(n_estimators=request.n_estimators or 100)
+    model = xgb.XGBRegressor(
+        n_estimators=request.n_estimators or 100,
+        max_depth=request.max_depth or 6,
+        learning_rate=request.learning_rate or 0.1,
+    )
     model.fit(X, y)
     predictions = model.predict(X)
 
     artifact_dir = project_root / 'models' / 'trained'
     artifact_dir.mkdir(parents=True, exist_ok=True)
-    artifact_name = f'{request.dataset_name.replace(".csv", "")}_random_forest.joblib'
+    artifact_name = f'{request.dataset_name.replace(".csv", "")}_xgboost.joblib'
     artifact_path = artifact_dir / artifact_name
     joblib.dump(model, artifact_path)
 
@@ -69,7 +79,7 @@ def train_random_forest(request: TrainingRequest):
         dataset_path.unlink()
 
     return TrainingResponse(
-        model='Random Forest',
+        model='XGBoost',
         dataset=request.dataset_name,
         r2_score=float(r2_score(y, predictions)),
         mae=float(mean_absolute_error(y, predictions)),

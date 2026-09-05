@@ -157,7 +157,7 @@ public class PythonMlClient {
 
     payload.put(
         "alpha",
-        request.alpha() == null ? 1.0 : request.alpha()
+        request.alpha() != 0.0 ? request.alpha() : 1.0
     );
 
     HttpHeaders headers = new HttpHeaders();
@@ -352,7 +352,45 @@ public class PythonMlClient {
         );
     }
 
-     public TrainingResponse callRandomForest(TrainingRequest request) {
+     public TrainingResponse callXgBoost(TrainingRequest request) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model_name", request.modelName());
+        payload.put("dataset_name", request.datasetName());
+        payload.put("target", request.target());
+        payload.put("features", request.features() == null ? List.of() : request.features());
+        payload.put("n_estimators", request.noOfTrees() == null ? 100 : request.noOfTrees());
+        payload.put("max_depth", request.maxDepth() == null ? 6 : request.maxDepth());
+        payload.put("learning_rate", request.learningRate());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "http://localhost:8000/api/train/xgboost",
+                HttpMethod.POST,
+                entity,
+                Map.class
+        );
+
+        Map<String, Object> body = response.getBody();
+        if (body == null) {
+            throw new IllegalStateException("Empty response from Python ML engine");
+        }
+
+        return new TrainingResponse(
+                String.valueOf(body.getOrDefault("model", "XgBoost")),
+                String.valueOf(body.getOrDefault("dataset", request.datasetName())),
+                toDouble(body.get("r2_score")),
+                toDouble(body.get("mae")),
+                toDouble(body.get("rmse")),
+                toStringList(body.get("features")),
+                String.valueOf(body.getOrDefault("target", request.target())),
+                String.valueOf(body.getOrDefault("artifact_name", "xgboost-model.joblib"))
+        );
+    }
+
+         public TrainingResponse callRandomForest(TrainingRequest request) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("model_name", request.modelName());
         payload.put("dataset_name", request.datasetName());
@@ -388,7 +426,80 @@ public class PythonMlClient {
         );
     }
 
-        
+    public TrainingResponse callSvr(TrainingRequest request) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model_name", request.modelName());
+        payload.put("dataset_name", request.datasetName());
+        payload.put("target", request.target());
+        payload.put("features", request.features() == null ? List.of() : request.features());
+        payload.put("epsilon", request.epsilon() == null ? 0.1 : request.epsilon());
+        payload.put("kernel", request.kernel() == null || request.kernel().isBlank() ? "rbf" : request.kernel());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "http://localhost:8000/api/train/svr",
+                HttpMethod.POST,
+                entity,
+                Map.class
+        );
+
+        Map<String, Object> body = response.getBody();
+        if (body == null) {
+            throw new IllegalStateException("Empty response from Python ML engine");
+        }
+
+        return new TrainingResponse(
+                String.valueOf(body.getOrDefault("model", "Support Vector Regression")),
+                String.valueOf(body.getOrDefault("dataset", request.datasetName())),
+                toDouble(body.get("r2_score")),
+                toDouble(body.get("mae")),
+                toDouble(body.get("rmse")),
+                toStringList(body.get("features")),
+                String.valueOf(body.getOrDefault("target", request.target())),
+                String.valueOf(body.getOrDefault("artifact_name", "svr-model.joblib"))
+        );
+    }
+
+    public TrainingResponse callKnn(TrainingRequest request) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model_name", request.modelName());
+        payload.put("dataset_name", request.datasetName());
+        payload.put("target", request.target());
+        payload.put("features", request.features() == null ? List.of() : request.features());
+        payload.put("n_neighbors", request.noOfNeighbors() == null ? 5 : request.noOfNeighbors());
+        payload.put("weights", request.weights() == null || request.weights().isBlank() ? "uniform" : request.weights());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "http://localhost:8000/api/train/knn",
+                HttpMethod.POST,
+                entity,
+                Map.class
+        );
+
+        Map<String, Object> body = response.getBody();
+        if (body == null) {
+            throw new IllegalStateException("Empty response from Python ML engine");
+        }
+
+        return new TrainingResponse(
+                String.valueOf(body.getOrDefault("model", "KNN Regression")),
+                String.valueOf(body.getOrDefault("dataset", request.datasetName())),
+                toDouble(body.get("r2_score")),
+                toDouble(body.get("mae")),
+                toDouble(body.get("rmse")),
+                toStringList(body.get("features")),
+                String.valueOf(body.getOrDefault("target", request.target())),
+                String.valueOf(body.getOrDefault("artifact_name", "knn-model.joblib"))
+        );
+    }
+
     private List<String> toStringList(Object value) {
         if (value instanceof List<?> list) {
             return list.stream().map(String::valueOf).toList();

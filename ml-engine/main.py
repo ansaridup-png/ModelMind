@@ -6,6 +6,9 @@ from api.mlapi.regressionapi.polynomial_regression_api import router as polynomi
 from api.mlapi.regressionapi.ridge_regression_api import router as ridge_regression_router
 from api.mlapi.regressionapi.decision_tree_api import router as decision_tree_router
 from api.mlapi.regressionapi.random_forest_api import router as random_forest_router
+from api.mlapi.regressionapi.xgboost_api import router as xgboost_router
+from api.mlapi.regressionapi.svr_api import router as svr_router
+from api.mlapi.regressionapi.knn_api import router as knn_router
 
 app = FastAPI(title='AI Model Platform ML Engine')
 app.include_router(linear_regression_router)
@@ -14,6 +17,10 @@ app.include_router(polynomial_regression_router)
 app.include_router(ridge_regression_router)
 app.include_router(decision_tree_router)
 app.include_router(random_forest_router)
+app.include_router(xgboost_router)
+app.include_router(svr_router)
+app.include_router(knn_router)
+
 @app.get('/health')
 def health():
     return {'status': 'ok'}
